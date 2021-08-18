@@ -20,19 +20,13 @@ public class SceneSelectorWindow : EditorWindow
     void CreateGUI()
     {
         var sceneGuids = AssetDatabase.FindAssets("t:Scene");
-        var playOnOpenToggle = new Toggle("Play on Open");
-        playOnOpenToggle.SetValueWithoutNotify(SceneSelectorSettings.instance.PlayOnOpen);
-        playOnOpenToggle.RegisterValueChangedCallback(evt =>
-        {
-            SceneSelectorSettings.instance.PlayOnOpen = evt.newValue;
-        });
+
         var returnOnExitToggle = new Toggle("Return on Exit");
         returnOnExitToggle.SetValueWithoutNotify(SceneSelectorSettings.instance.ReturnOnExit);
         returnOnExitToggle.RegisterValueChangedCallback(evt =>
         {
             SceneSelectorSettings.instance.ReturnOnExit = evt.newValue;
         });
-        rootVisualElement.Add(playOnOpenToggle);
         rootVisualElement.Add(returnOnExitToggle);
         foreach (var sceneGuid in sceneGuids)
         {
@@ -42,27 +36,36 @@ public class SceneSelectorWindow : EditorWindow
 
     static void ReturnToPreviousScene(PlayModeStateChange change)
     {
-        if (SceneSelectorSettings.instance.PlayOnOpen && change == PlayModeStateChange.EnteredEditMode)
+        if (SceneSelectorSettings.instance.ReturnOnExit && change == PlayModeStateChange.EnteredEditMode)
         {
             EditorSceneManager.OpenScene(SceneSelectorSettings.instance.PreviousScenePath, OpenSceneMode.Single);
         }
     }
 
-    Button CreateSceneButton(string sceneGuid)
+    VisualElement CreateSceneButton(string sceneGuid)
     {
         var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
-        var button = new Button(async () =>
+        var buttonGroup = new VisualElement();
+        buttonGroup.style.flexDirection = FlexDirection.Row;
+        buttonGroup.style.marginLeft = 3;
+
+        var sceneAsset = AssetDatabase.LoadAssetAtPath(scenePath, typeof(SceneAsset));
+        var label = new Label($"{sceneAsset.name}");
+        label.style.width = 150;
+        buttonGroup.Add(label);
+
+        var openButton = new Button(() => { EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single); });
+        openButton.text = "Open";
+        buttonGroup.Add(openButton);
+
+        var playButton = new Button(() =>
         {
             SceneSelectorSettings.instance.PreviousScenePath = SceneManager.GetActiveScene().path;
-
             EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-            if (SceneSelectorSettings.instance.PlayOnOpen)
-            {
-                EditorApplication.EnterPlaymode();
-            }
+            EditorApplication.EnterPlaymode();
         });
-        var sceneAsset = AssetDatabase.LoadAssetAtPath(scenePath, typeof(SceneAsset));
-        button.text = $"{sceneAsset.name}";
-        return button;
+        playButton.text = "Play";
+        buttonGroup.Add(playButton);
+        return buttonGroup;
     }
 }
