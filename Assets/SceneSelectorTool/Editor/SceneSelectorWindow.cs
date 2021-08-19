@@ -11,7 +11,7 @@ public class SceneSelectorWindow : EditorWindow
         GetWindow<SceneSelectorWindow>();
     }
 
-    [InitializeOnLoadMethodAttribute]
+    [InitializeOnLoadMethod]
     static void RegisterCallbacks()
     {
         EditorApplication.playModeStateChanged += ReturnToPreviousScene;
