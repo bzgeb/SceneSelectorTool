@@ -21,13 +21,6 @@ public class SceneSelectorWindow : EditorWindow
     {
         var sceneGuids = AssetDatabase.FindAssets("t:Scene");
 
-        var returnOnExitToggle = new Toggle("Return on Exit");
-        returnOnExitToggle.SetValueWithoutNotify(SceneSelectorSettings.instance.ReturnOnExit);
-        returnOnExitToggle.RegisterValueChangedCallback(evt =>
-        {
-            SceneSelectorSettings.instance.ReturnOnExit = evt.newValue;
-        });
-        rootVisualElement.Add(returnOnExitToggle);
         foreach (var sceneGuid in sceneGuids)
         {
             rootVisualElement.Add(CreateSceneButton(sceneGuid));
@@ -36,7 +29,7 @@ public class SceneSelectorWindow : EditorWindow
 
     static void ReturnToPreviousScene(PlayModeStateChange change)
     {
-        if (SceneSelectorSettings.instance.ReturnOnExit && change == PlayModeStateChange.EnteredEditMode)
+        if (change == PlayModeStateChange.EnteredEditMode)
         {
             EditorSceneManager.OpenScene(SceneSelectorSettings.instance.PreviousScenePath, OpenSceneMode.Single);
         }
